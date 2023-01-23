@@ -1,4 +1,10 @@
+elppanl
 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
 
+elppawow
+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
 
-git remote set-url origin https://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@github.com/elppanl/https://github.com/elppanl/joetest1.git.git
+
+
+
+
