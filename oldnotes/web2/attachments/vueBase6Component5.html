@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+	</head>
+	<body>
+		<!--总结开始
+		组件的高级用法
+			递归组件
+			内联模板
+			动态组件<component>标签和is特性
+			异步组件p94
+			$nextTick的用法及异步更新队列的概念
+			X-Templates的用法
+			手动挂载Vue的实例
+			使用template标签来定义组件的模板
+		总结结束-->
+		
+		<!--递归组件-->
+		<div id="app1">
+			<child-component1 :count="1"></child-component1>
+		</div>		
+		<!--以上递归组件渲染后结果如下
+		<div id="app1">
+			<div class="child">
+				<div class="child">
+					<div class="child">
+					</div>
+				</div>
+			</div>
+		</div>-->
+		
+		<!--内联模板-->
+		<div id="app2">
+			<child-component2 inline-template>
+				<div>
+					<h2>在父组件定义子组件的模板</h2>
+					<p>{{message}}</p>
+					<p>{{msg}}</p>
+				</div>
+			</child-component2>
+		</div>
+		
+		<!--动态模板-->
+		<div id="app3">
+			<component :is="currentView"></component>
+			<button @click="handleChangeView('A')">切换到A</button>
+			<button @click="handleChangeView('B')">切换到B</button>
+			<button @click="handleChangeView('C')">切换到C</button>
+		</div>
+		
+		<!--$nextTick的用法及异步更新队列的概念-->
+		<div id="app5">
+			<div id="div" v-if="showDiv">这是一段文本</div>
+			<button @click="getText">获取div内容</button>
+		</div>
+		
+		<!--X-Templates的用法-->
+		<div id="app6">
+			<my-component1></my-component1>
+			<!--以下script标签里的内容将被认为是my-component1组件的模板
+			script标签里的type属性值必须是"text/x-template"
+			给script标签设定一个id，以便在my-component1的template选项中指定-->
+			<script type="text/x-template" id="my-component11">
+				<div>这里是组件的内容</div>
+			</script>
+		</div>
+		
+		<!--手动挂载Vue的实例-->
+		<div id="mount-div"></div>
+		
+		<!--使用template标签来定义组件的模板-->
+		<div id="app7">
+			<tptest></tptest>
+		</div>
+		<template id="tt1">
+			<div>
+				<h2>这里是template标签设置的模板标题</h2>
+				<p>{{dd}}</p>
+			</div>
+		</template>
+		
+		
+		<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+		<script type="text/javascript">
+//			第一个例子:递归组件
+//			1)组件需要加一个name选项
+//			2)必须给一个条件来限制递归的数量
+			Vue.component('child-component1', {
+				name:'child-component1',
+				props:{
+					count:{
+						type:Number,
+						default:1
+					}
+				},
+				template:'\
+				<div class="child">\
+					<child-component1\
+						:count="count + 1"\
+						v-if="count < 3"></child-component1>\
+				</div>'
+			});
+			
+			var ap1=new Vue({
+				el:'#app1'
+			});
+			
+//			第二个例子:内联模板
+//			给组件标签使用inline-template属性,组件就会把它的内容当做模板,而不是把它当内容分发
+//			注意,下面例子中,父组件和子组件中的数据(message, msg)都能访问
+			Vue.component('child-component2', {
+				data:function(){
+					return{
+						msg:'在子组件声明的数据'
+					}
+				}
+			});
+			
+			var ap2=new Vue({
+				el:'#app2',
+				data:{
+					message:'在父组件声明的数据'
+				}
+			});
+			
+//			第三个例子:动态模板
+//			使用<component>标签来动态挂载不同的组件
+//			使用is特性来选择要挂载的组件
+			var ap3=new Vue({
+				el:'#app3',
+				components:{
+					comA:{
+						template:'<div>组件A</div>'
+					},
+					comB:{
+						template:'<div>组件B</div>'
+					},
+					comC:{
+						template:'<div>组件C</div>'
+					}	
+				},
+				data:{
+					currentView:'comA'
+				},
+				methods:{
+					handleChangeView:function(component){
+						this.currentView='com' + component;
+					}
+				}
+			});
+			
+//			第四个例子:$nextTick的用法及异步更新队列的概念
+			var ap5=new Vue({
+				el:'#app5',
+				data:{
+					showDiv:false
+				},
+				methods:{
+					getText:function(){
+						this.showDiv=true;
+						this.$nextTick(function(){
+							var text=document.getElementById('div').innerHTML;
+							console.log(text);
+						});
+//						如果不使用$nextTick而直接打印innerHTML会报错,因为this.showDiv=true;的同时打印,那时候还没有div元素呢
+					}
+				}
+			});
+			
+//			第五个例子:X-Templates的用法
+			Vue.component('my-component1', {
+				template:'#my-component11'  //指定script type=text/x-template标签的id
+			});
+			
+			var ap6=new Vue({
+				el:'#app6'
+			});
+			
+//			第六个例子:手动挂载Vue的实例
+//			Vue.extend是基础Vue构造器,创建一个"子类",参数是一个包含组件选项的对象
+//			$mount()可以手动挂载一个未挂载的实例
+			var MyComponent=Vue.extend({
+				template:'<div>Hello:{{name}}</div>',
+				data:function(){
+					return{
+						name:'Alice'
+					}
+				}
+			});
+			new MyComponent().$mount('#mount-div');  //用new创建一个新实例，并用$mount挂载到#mount-div中
+			
+//			第七个例子:使用template标签来定义组件的模板
+			Vue.component('tptest', {
+				template: '#tt1',
+				data:function() {
+					return {
+						dd:"这里是template标签设置的模板内容"
+					}
+				}
+			});
+			var ap7=new Vue({
+				el:'#app7'
+			});
+//			如果使用局部组件,那么写法是
+//			components:{
+//				'tptest':{
+//					template:'#tt1'
+//				}
+//			}
+			
+			
+		</script>
+	</body>
+</html>

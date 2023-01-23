@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+	</head>
+	<body>
+		<!--总结开始
+		中央事件总线bus
+			首先创建一个名为bus的空实例
+			子组件内，特点时间会通过bus把事件on-message发射出去
+			在实例初始化时,监听来自bus实例的事件，一旦on-message有更新，就会执行相应的函数。
+		父链
+			$parent
+			$children
+			$refs
+		总结结束-->
+		
+		<!--bus的基本用法-->
+		<div id="app1">
+			{{message}}
+			<component-a></component-a>
+		</div>
+		
+		<!--父链$parent-->
+		<div id="app2">
+			{{message}}
+			<component-b></component-b>
+		</div>
+		
+		<!--$children和ref-->
+		<div id="app3">
+			<button @click="handleRef">通过ref获取子组件实例</button>
+			<component-c ref="comA"></component-c>  <!--使用ref属性给组件起一个名字，之后在父中-->
+		</div>
+		
+		
+		
+		<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+		<script type="text/javascript">
+//			第一个例子:bus的基本用法
+			var bus=new Vue();  //创建一个名为bus的空实例
+			Vue.component('component-a',{
+				template:'<button @click="handleEvent">传递事件</button>',
+				methods:{
+					handleEvent:function(){
+//						通过bus把事件on-message发射出去
+						bus.$emit('on-message','来自组件component-a的信息');
+					}
+				}
+			});
+			var ap1=new Vue({
+				el:'#app1',
+				data:{
+					message:''
+				},
+//					在实例初始化时,监听来自bus实例的事件，一旦on-message有更新，就会执行后面的函数。msg就是bus.$emit传来的值
+				mounted:function(){
+					var _this=this;  //_this==this==ap1
+					bus.$on('on-message', function(msg){
+						_this.message=msg;
+					});
+				}
+			});
+			
+//			第二个例子:父链$parent
+			Vue.component('component-b',{
+				template:'<button @click="handleEvent">通过父链直接修改数据</button>',
+				methods:{
+					handleEvent:function(){
+//						访问父链后可以做任何操作,比如修改数据
+						this.$parent.message='来自组件component-b的信息';
+					}
+				}
+			});
+			
+			var ap2=new Vue({
+				el:'#app2',
+				data:{
+					message:''
+				}
+			});
+			
+//			第三个例子:$children和ref
+			Vue.component('component-c',{
+				template:'<div>子组件</div>',
+				data:function(){
+					return{
+						message:'子组件的数据'
+					}
+				}
+			});
+			
+			var ap3=new Vue({
+				el:'#app3',
+				methods:{
+					handleRef:function(){
+//						通过$refs来访问指定的实例
+						var msg=this.$refs.comA.message;
+						console.log(msg);	
+					}
+				}
+			});
+			
+			
+		</script>
+	</body>
+</html>
